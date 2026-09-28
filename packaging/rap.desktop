@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Rap
+GenericName=Rust audio player
+Comment=Play local music files
+Exec=rap
+TryExec=rap
+Icon=rap
+StartupWMClass=rap
+Categories=AudioVideo;Audio;Player;
+Terminal=false

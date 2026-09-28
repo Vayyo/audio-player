@@ -1,0 +1,19 @@
+[package]
+name = "rap"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cpal = "0.18.2"
+symphonia = { version = "0.6.1", features = ["mp3"] }
+eframe = "0.36.2"
+rfd = "0.17.2"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+ksni = { version = "0.3", features = ["blocking"] }
+libc = "0.2"
+serde_json = "1"
+zbus = "5.19"
+
+[dev-dependencies]
+hound = "3.5.1"
