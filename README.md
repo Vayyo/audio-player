@@ -1,47 +1,90 @@
-# Rap
+# 🎵 Rap — локальный аудиоплеер
 
-Rap is a local desktop audio player written in Rust. Its `egui` window has an animated ASCII donut and a PCM-reactive visualizer, alongside track controls, a seek bar and colour settings. Audio decoding uses Symphonia; CPAL sends converted PCM to the **default** output device. The app does not stream music or require an account.
+> Музыка с вашего компьютера в окне `egui`: очередь треков, управление воспроизведением и визуализация звука. Без аккаунта и сетевого стриминга.
 
-## Build and run
+![Rust: edition 2024](https://img.shields.io/badge/Rust-edition%202024-orange) ![Linux desktop](https://img.shields.io/badge/Linux-desktop-blue)
 
-Use a recent stable Rust toolchain that supports edition 2024. On Linux, install a C compiler, `pkg-config`, ALSA development headers/libraries (for example `libasound2-dev` on Debian/Ubuntu or `alsa-lib` on Arch), and the development/runtime libraries required by your X11 or Wayland desktop. A running graphical session and a usable default audio output device are needed for playback. File and folder dialogs on Linux use the XDG desktop portal; ensure a suitable portal backend is running. The Linux system tray uses a StatusNotifierItem watcher supplied by the desktop environment.
+---
 
-From this directory:
+## ✨ Возможности
+
+| Функция | Как работает |
+| --- | --- |
+| 🎼 Музыка | Открытие одного файла или рекурсивный поиск поддерживаемых файлов в папке |
+| ⏯ Управление | Воспроизведение, пауза, предыдущий/следующий трек и перемотка |
+| 🔁 Повтор | Выкл. → вся очередь → один трек |
+| 🔊 Громкость | От 0 до 100% с шагом 5%; системную громкость не меняет |
+| 🍩 Визуализация | Анимированный ASCII-пончик и визуализатор, реагирующий на PCM; режимы B&W, Solid, RGB и настройка оттенка |
+| 🖥 Системный трей Linux | При наличии работающего трея доступны «Показать» и «Выход» |
+
+---
+
+## 🚀 Быстрый старт
+
+Нужен актуальный стабильный Rust с поддержкой edition 2024. Для сборки на Linux установите компилятор C, `pkg-config`, заголовки и библиотеки ALSA (`libasound2-dev` на Debian/Ubuntu, `alsa-lib` на Arch), а также библиотеки разработки и времени выполнения для вашей графической среды X11 или Wayland. Для воспроизведения нужны работающая графическая сессия и доступное **устройство вывода по умолчанию**. Диалоги выбора файла и папки используют XDG desktop portal — нужен подходящий запущенный backend. Для трея окружение должно предоставлять StatusNotifierItem watcher.
+
+Из каталога `audio-player`:
 
 ```sh
 cargo run --release
-cargo run --release -- "/path/to/song.flac"  # optional initial file
+# Или сразу загрузить один файл:
+cargo run --release -- "/path/to/song.flac"
+```
+
+Путь — необязательный первый аргумент: создаётся очередь из одного файла, но воспроизведение начнётся только после нажатия Play. Остальные аргументы не обрабатываются.
+
+Проверка проекта:
+
+```sh
 cargo test
 cargo build
 ```
 
-The optional first argument loads one file into a single-track queue, stopped until Play is pressed. Other arguments are not processed. To install a per-user launcher and icon on Linux, run `scripts/build-install.sh`; it builds the release binary and calls `scripts/install-desktop.sh`. The launcher points to the release binary **in this checkout**, so keep the checkout (and its `target` directory or `CARGO_TARGET_DIR` release build) in place while the launcher is installed. `rsvg-convert` is optional for a PNG icon; the SVG is installed regardless. Uninstall the owned launcher and icons with `scripts/install-desktop.sh --uninstall`. The scripts modify files in your home directory; review them before running them.
+---
 
-## Playing music
+## 🎶 Как слушать
 
-- On the **Music** page, **Open file** selects one local file; **Music folder** scans supported files recursively, sorts them by path and queues them. Directory symlinks are not traversed. The first track is prepared but does not start automatically. You can also open a file with the command above.
-- MP3, FLAC, WAV and Ogg Vorbis are the supported file types in the picker and folder scan. Actual decoding depends on Symphonia recognizing the container/codec. The filename without its extension and, if available, the artist tag are displayed.
-- Previous/next navigate the queue. Repeat cycles **Off → All → One**: at the end, Off stops, All starts over, and One replays the same track. Click or drag the seek bar to change playback position; dragging commits when released.
-- Playback uses the current default output configuration. Volume applies to Rap only, from 0 to 100% in 5% steps; it does not change system volume. Opening and decoding happen away from the UI thread; an unsuccessful selection/load leaves the current track in place and reports an error.
-- **Colour** offers B&W, Solid and RGB visualizer modes and a hue slider. The mode and hue persist only for the current session. On Linux, a working tray offers **Show** and **Quit**; closing the window can keep playback running via the tray on X11 or Hyprland. On other Wayland compositors, or without a working tray, closing normally exits instead of leaving an inaccessible background process.
+На странице **Music** кнопка **Open file** выбирает локальный файл, а **Music folder** рекурсивно собирает поддерживаемые файлы в очередь, сортируя их по пути. Символьные ссылки на каталоги не обходятся; первый трек готовится, но не запускается автоматически. В диалоге и при сканировании папки доступны MP3, FLAC, WAV и Ogg Vorbis; фактическое декодирование зависит от того, распознает ли Symphonia контейнер и кодек. Показываются имя файла без расширения и, если есть, тег исполнителя.
 
-### Keyboard and mouse (while the Rap window is focused)
+Кнопки предыдущего/следующего трека перемещают по очереди. Повтор переключается **Off → All → One**: в режиме Off в конце очередь останавливается, All начинает её заново, One повторяет текущий трек. Клик по полосе перемотки меняет позицию сразу, перетаскивание — после отпускания. Загрузка и декодирование выполняются вне UI-потока; при ошибке выбора или загрузки прежний трек остаётся и показывается сообщение об ошибке.
 
-| Input | Action |
+На странице **Colour** можно сменить режим визуализации и оттенок. Они сохраняются только до завершения сеанса. При работающем трее на X11 или Hyprland закрытие окна может оставить воспроизведение в фоне; на других композиторах Wayland или без работающего трея закрытие обычно завершает программу, чтобы не оставлять недоступный фоновый процесс.
+
+### ⌨️ Клавиши и мышь
+
+Сочетания действуют, пока окно Rap находится в фокусе.
+
+| Ввод | Действие |
 | --- | --- |
-| Space | Play/pause |
-| Ctrl+Left / Ctrl+Right | Previous / next track |
-| R | Repeat Off → All → One |
-| Ctrl+O / Ctrl+F | Open file / choose music folder |
-| Up / Down, or mouse wheel over the window | Rap volume ±5% |
-| Alt+C / Alt+M | Colour / Music page |
-| Alt+B / Alt+S / Alt+G | B&W / Solid / RGB |
-| Escape | Back / collapse side menu |
-| Ctrl+B | Expand / collapse side menu |
-| Tab / Shift+Tab, Enter | Focus and activate controls |
+| `Space` | Воспроизведение / пауза |
+| `Ctrl+Left` / `Ctrl+Right` | Предыдущий / следующий трек |
+| `R` | Повтор: Off → All → One |
+| `Ctrl+O` / `Ctrl+F` | Открыть файл / выбрать папку Music |
+| `Up` / `Down`, колесо мыши над окном | Громкость Rap ±5% |
+| `Alt+C` / `Alt+M` | Страница Colour / Music |
+| `Alt+B` / `Alt+S` / `Alt+G` | Режим B&W / Solid / RGB |
+| `Escape` | Назад / свернуть боковое меню |
+| `Ctrl+B` | Развернуть / свернуть боковое меню |
+| `Tab` / `Shift+Tab`, `Enter` | Выбрать элемент и активировать его |
 
-The seek bar also accepts keyboard input when focused. The window close shortcut follows your desktop environment's normal close-window behavior; it is not a global Rap hotkey.
+Полоса перемотки также управляется с клавиатуры, когда она в фокусе. Сочетание для закрытия окна определяется рабочим столом, это не глобальная горячая клавиша Rap.
 
-## Limits
+---
 
-Each file is decoded and converted into memory before playback, so large files can take time and memory. Rap uses the default device only (no device selection); channel conversion repeats or averages channels rather than providing surround-aware mixing. It does not implement playlists such as M3U, network streams, cover art, a searchable library, DSP effects or MPRIS/media-key control. Supported default-device sample formats are f32, signed 16-bit and unsigned 16-bit; other configurations produce an error. The automated tests cover decoding and player logic, but **audible output on a particular device has not been verified here**.
+## 📦 Установка в меню Linux
+
+```sh
+scripts/build-install.sh
+# Удалить принадлежащие Rap ярлык и иконки:
+scripts/install-desktop.sh --uninstall
+```
+
+Первый скрипт собирает release-бинарник и вызывает `scripts/install-desktop.sh` для установки пользовательского ярлыка и иконки. Ярлык ссылается на бинарник **в этом каталоге проекта**: не удаляйте каталог и его `target` (либо release-сборку в `CARGO_TARGET_DIR`) до удаления ярлыка. `rsvg-convert` необязателен для PNG-иконки; SVG устанавливается в любом случае. Скрипты изменяют файлы в домашнем каталоге — ознакомьтесь с ними перед запуском.
+
+---
+
+## ⚙️ Устройство и ограничения
+
+Symphonia декодирует файл, а CPAL отправляет преобразованный PCM на текущее устройство вывода **по умолчанию**. Каждый файл целиком декодируется и преобразуется в памяти до воспроизведения: большие файлы требуют времени и памяти. Выбора устройства нет; при преобразовании каналов они повторяются или усредняются, без учёта пространственного звука. Поддерживаемые форматы сэмплов устройства по умолчанию: `f32`, знаковый `16-bit` и беззнаковый `16-bit`; другие конфигурации дают ошибку.
+
+Нет плейлистов вроде M3U, сетевых потоков, обложек, поиска по медиатеке, DSP-эффектов и управления через MPRIS/медиаклавиши. Автоматические тесты охватывают декодирование и логику плеера, но **звук на конкретном физическом устройстве отдельно не проверялся**.
